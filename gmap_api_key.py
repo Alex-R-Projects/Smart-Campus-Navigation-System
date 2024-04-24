@@ -1,7 +1,7 @@
 import googlemaps
 import google_streetview.api
 
-gmap = googlemaps.Client(key= 'Your api key')
+#gmap = googlemaps.Client(key= 'Your api key')
 # Use your own key test the program, but be careful not to pull/push it into github
 
 
