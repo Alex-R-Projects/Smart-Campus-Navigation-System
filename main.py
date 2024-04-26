@@ -1,9 +1,8 @@
 
 import matplotlib.pyplot as plt # For Visualizations
-import osmnx as ox
+import osmnx as ox # This gets the lat/long coordinates, and will plot the graph for CSUF
 
-
-# For this project we are going to use the google maps API for be able to 1) Visualize, and 2) use as a graph that way we can implement the many shortest path algorithms 
+ 
 
 # Coordinates for CSUF
 latitude = 33.8823
