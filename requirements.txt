@@ -12,6 +12,7 @@ geopandas==0.14.3
 google-streetview==1.2.9
 googlemaps==4.10.0
 idna==3.7
+joblib==1.4.0
 kiwisolver==1.4.5
 kwconfig==1.1.7
 matplotlib==3.8.4
@@ -26,7 +27,10 @@ pyproj==3.6.1
 python-dateutil==2.9.0.post0
 pytz==2024.1
 requests==2.31.0
+scikit-learn==1.4.2
+scipy==1.13.0
 shapely==2.0.4
 six==1.16.0
+threadpoolctl==3.4.0
 tzdata==2024.1
 urllib3==2.2.1
