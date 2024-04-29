@@ -24,8 +24,10 @@ def create_graph(csuf_campus_map) -> dict:
             
             if 'name' in nei_data:
                 graph[nei_id]['name'] = nei_data['name']
-
-            graph[source_id]['adj'] = {}
+            if 'adj' not in graph[source_id]:
+                graph[source_id]['adj'] = {}
+            if 'adj' not in graph[nei_id]:
+                graph[nei_id]['adj'] = {}
             graph[source_id]['adj'][nei_id] = nei_data['length']
     
     # Copy coords
@@ -198,6 +200,6 @@ plt.show()
 graph = create_graph(csuf_campus_map)
 add_locations(graph)
 
-path = dfs(graph, 3583764515, 122562951)
+path = dfs(graph, 'Student Recreation Center', 'Titan Gym')
 
 debug(path)
