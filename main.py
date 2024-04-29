@@ -148,6 +148,7 @@ def dijkstra(graph, start, end):
     return paths[end]
 
 # Breadth-first search
+# Needs comments
 def bfs(graph, start, end):
     queue = deque([[start]])
     visited = set([start])
@@ -169,8 +170,11 @@ def bfs(graph, start, end):
     return None
 
 # Depth-first search
-def dfs(graph, start, end):
-    path = [] + start
+# Needs comments
+def dfs(graph, start, end, path=None):
+    if path==None:
+        path = []
+    path.append(start)
     if start == end:
         return path
     if start not in graph:
@@ -194,6 +198,6 @@ plt.show()
 graph = create_graph(csuf_campus_map)
 add_locations(graph)
 
-path = dfs(graph, 122562951, 3583764516)
+path = dfs(graph, 3583764515, 122562951)
 
-debug(graph)
+debug(path)
