@@ -86,7 +86,7 @@ csuf_locations = { # dictionary to hold the location names, and the coordinates 
     "Steven G. Mihaylo Hall":                    (33.878737420937604, -117.88330674089343),
     "Gordon Hall":                               (33.87974056822556, -117.88416485364138),
     "Student Recreation Center":                 (33.883151509614216, -117.88777544125246),
-    "Eastside Parking Structure":                         (33.8820, -117.8844),
+    "Parking Structure":                         (33.8820, -117.8844), # which parking structure is this?
     "Titan Gym":                                 (33.88311484580521, -117.88601834470772),
     "Engineering Building":                      (33.88223141593597, -117.88278388630202),
     "Visual Arts Center":                        (33.88007014225456, -117.88866610469454),
@@ -99,8 +99,9 @@ csuf_locations = { # dictionary to hold the location names, and the coordinates 
 }
 
 # Add locations as nodes to the graph
-for location, (y, x) in csuf_locations.items():
-    csuf_campus_map.add_node(location, street_count=0, x=x, y=y)
+for location, coords in csuf_locations.items():
+    csuf_campus_map.add_node(location, x = coords[1], y = coords[0], weight = 1)
+# I know for Dijkstra's Algo we need to set weights, but for now I have just set the weights to 1 for ALL nodes
 
 # Plot the updated graph to visualize it
 ox.plot_graph(csuf_campus_map, node_size=10, show=False, close=False)
@@ -110,7 +111,7 @@ for id, data in csuf_campus_map.nodes(data=True):
     # Note: coordinates are accessed as (latitude, longitude)
     # Nodes will be represented with red circles
     if id in csuf_locations:
-        plt.plot(data['x'], data['y'], 'ro', markersize=5)
+        plt.plot(data['x'], data['y'], 'ro', markersize=5)  
 
 # Dijkstra's Algorithm
 def dijkstra(graph, start, end):
