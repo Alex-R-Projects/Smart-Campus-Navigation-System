@@ -2,6 +2,8 @@
 import matplotlib.pyplot as plt # For Visualizations
 import osmnx as ox # This gets the lat/long coordinates, and will plot the graph for CSUF
 import collections # defaultdict
+from collections import deque
+import heapq
 
 from pprint import pprint # debugging
 
@@ -84,7 +86,7 @@ csuf_locations = { # dictionary to hold the location names, and the coordinates 
     "Steven G. Mihaylo Hall":                    (33.878737420937604, -117.88330674089343),
     "Gordon Hall":                               (33.87974056822556, -117.88416485364138),
     "Student Recreation Center":                 (33.883151509614216, -117.88777544125246),
-    "Parking Structure":                         (33.8820, -117.8844), # which parking structure is this?
+    "Eastside Parking Structure":                         (33.8820, -117.8844),
     "Titan Gym":                                 (33.88311484580521, -117.88601834470772),
     "Engineering Building":                      (33.88223141593597, -117.88278388630202),
     "Visual Arts Center":                        (33.88007014225456, -117.88866610469454),
@@ -108,7 +110,77 @@ for id, data in csuf_campus_map.nodes(data=True):
     # Note: coordinates are accessed as (latitude, longitude)
     # Nodes will be represented with red circles
     if id in csuf_locations:
-        plt.plot(data['x'], data['y'], 'ro', markersize=5)  
+        plt.plot(data['x'], data['y'], 'ro', markersize=5)
+
+# Dijkstra's Algorithm
+def dijkstra(graph, start, end):
+    # Initialize the distance dictionary with infinite distances for all nodes except the start node
+    distances = {node: float('infinity') for node in graph}
+    distances[start] = 0
+
+    # Initialize the path dictionary
+    paths = {node: [] for node in graph}
+    paths[start] = [start]
+
+    # Priority queue for the nodes to visit
+    queue = [(0, start)]
+
+    while queue:
+        # Get the node with the smallest distance
+        current_distance, current_node = heapq.heappop(queue)
+
+        # If the current distance is greater than the recorded distance for the current node, skip it
+        if current_distance > distances[current_node]:
+            continue
+
+        # Check all the neighboring nodes
+        for neighbor, weight in graph[current_node]['adj'].items():
+            distance = current_distance + weight
+
+            # If the calculated distance is less than the recorded distance for the neighbor, update it
+            if distance < distances[neighbor]:
+                distances[neighbor] = distance
+                paths[neighbor] = paths[current_node] + [neighbor]
+                heapq.heappush(queue, (distance, neighbor))
+
+    # Return the shortest path from start to end
+    return paths[end]
+
+# Breadth-first search
+def bfs(graph, start, end):
+    queue = deque([[start]])
+    visited = set([start])
+
+    while queue:
+        path = queue.popleft()
+        node = path[-1]
+
+        if node == end:
+            return path
+
+        for adjacent, _ in graph[node]['adj'].items():
+            if adjacent not in visited:
+                visited.add(adjacent)
+                new_path = list(path)
+                new_path.append(adjacent)
+                queue.append(new_path)
+
+    return None
+
+# Depth-first search
+def dfs(graph, start, end):
+    path = [] + start
+    if start == end:
+        return path
+    if start not in graph:
+        return None
+    for node in graph[start]['adj']:
+        if node not in path:
+            new_path = dfs(graph, node, end, path)
+            if new_path:
+                return new_path
+    return None
+
 
 
 # Display the plot
@@ -120,5 +192,7 @@ plt.show()
 
 graph = create_graph(csuf_campus_map)
 add_locations(graph)
+
+path = dfs(graph, 122562951, 3583764516)
 
 debug(graph)
