@@ -2,8 +2,7 @@
 import matplotlib.pyplot as plt # For Visualizations
 from matplotlib.widgets import Button, TextBox
 import osmnx as ox # This gets the lat/long coordinates, and will plot the graph for CSUF
-import collections # defaultdict
-from collections import deque
+from collections import deque, defaultdict
 import heapq
 
 from pprint import pprint # debugging
@@ -14,7 +13,7 @@ def debug(data, mode='w'):
 
 def create_graph(csuf_campus_map) -> dict:
     # Create cleaned graph
-    graph = collections.defaultdict(dict)
+    graph = defaultdict(dict)
 
     # Copy adjacency
     for source_id, source_data in csuf_campus_map.adj.items():
@@ -179,75 +178,144 @@ def dfs(graph, start, end, path=None):
 
 ################## Code for Plot is below ####################
 
+def err_invalid():
+    start_textbox.set_val("Invalid")
 
-def run_bfs(event):
-    start = start_textbox.text
-    end = end_textbox.text
-    path = bfs(graph, start, end)
-    debug(path)
+def run_bfs(graph):
+    def run(event):
+        start = start_textbox.text
+        end = end_textbox.text
+
+        if start not in graph or end not in graph:
+            err_invalid()
+            return
+
+        path = bfs(graph, start, end)
+        plot_path(graph, path)
+        plt.show()
+        debug(f"bfs from {start} to {end}: {path}")
+    return run
 
 # Function to handle button click for DFS
-def run_dfs(event):
-    start = start_textbox.text
-    end = end_textbox.text
-    path = dfs(graph, start, end)
-    debug(path)
+def run_dfs(graph):
+    def run(event):
+        start = start_textbox.text
+        end = end_textbox.text
+
+        if start not in graph or end not in graph:
+            err_invalid()
+            return
+        
+        path = dfs(graph, start, end)
+        plot_path(graph, path)
+        plt.show()
+        debug(f"dfs from {start} to {end}: {path}")
+    return run
 
 # Function to handle button click for Dijkstra's
-def run_dijkstra(event):
-    start = start_textbox.text
-    end = end_textbox.text
-    path = dijkstra(graph, start, end)
-    debug(path)
+def run_dijkstra(graph):
+    def run(event):
+        start = start_textbox.text
+        end = end_textbox.text
 
+        if start not in graph or end not in graph:
+            err_invalid()
+            return
 
+        path = dijkstra(graph, start, end)
+        plot_path(graph, path)
+        plt.show()
+        debug(f"dijkstra from {start} to {end}: {path}")
+    return run
 
+def clear_textboxes(event):
+    start_textbox.set_val('')
+    end_textbox.set_val('')
 
 # Add locations as nodes to the graph
 for location, coords in csuf_locations.items():
     csuf_campus_map.add_node(location, x = coords[1], y = coords[0], weight = 1)
 # I know for Dijkstra's Algo we need to set weights, but for now I have just set the weights to 1 for ALL nodes
 
-# Plot location nodes on top of the campus map
-for id, data in csuf_campus_map.nodes(data=True):
-    # Note: coordinates are accessed as (latitude, longitude)
-    # Nodes will be represented with red circles
-    if id in csuf_locations:
-        plt.plot(data['x'], data['y'], 'ro', markersize=5)  
-# Plot the updated graph to visualize it
-ox.plot_graph(csuf_campus_map, node_size=10, show=False, close=False)
+def plot_map():
+    # Plot the updated graph to visualize it
+    ox.plot_graph(csuf_campus_map, node_size=10, show=False, close=False)
+    # Plot location nodes on top of the campus map
+    for id, data in csuf_campus_map.nodes(data=True):
+        # Note: coordinates are accessed as (latitude, longitude)
+        # Nodes will be represented with red circles
+        if id in csuf_locations:
+            plt.plot(data['x'], data['y'], 'ro', markersize=5)  
+    # Display the plot
+    plt.title("Cal State Fullerton Campus Map with Nodes")
+    plt.xlabel("Longitude")
+    plt.ylabel("Latitude")
 
-# Below are the dimensions for buttons for the each algo
-bfs_ax = plt.axes([0.1, 0.1, 0.1, 0.1])
-dfs_ax = plt.axes([0.3, 0.1, 0.1, 0.1])
-dijkstra_ax = plt.axes([0.5, 0.1, 0.1 , 0.1 ])
+def plot_path(graph, path):
+    plot_map()
+
+    start_y, start_x = graph[path[0]]['coords']
+    end_y, end_x = graph[path[-1]]['coords']
+    coords_x = []
+    coords_y = []
+    for node in path:
+        y, x = graph[node]['coords']
+        coords_x.append(x)
+        coords_y.append(y)
+
+    plt.plot(coords_x, coords_y, '.y-', lw=2)
+    plt.plot(start_x, start_y, 'go', markersize=10)
+    plt.plot(end_x, end_y, 'bo', markersize=10)
+
+
+def plot_location_names(event):
+    plt.figure()
+    plt.title('')
+    
+    text = []
+    for location in csuf_locations.keys():
+        text.append(f"{location}\n")
+    
+    plt.text(0.3, 0.1, ''.join(text), fontsize=10, color='black', transform=plt.gca().transAxes)
+    plt.axis('off')
+    plt.show()
+
+plot_map()
+
+graph = create_graph(csuf_campus_map)
+add_locations(graph)
+
+ # Below are the dimensions for buttons for the each algo
+bfs_ax = plt.axes([0.625, 0.005, 0.11, 0.1])
+dfs_ax = plt.axes([0.75, 0.005, 0.11, 0.1])
+dijkstra_ax = plt.axes([0.875, 0.005, 0.11, 0.1])
 # Create text input boxes for start and end points
-start_ax = plt.axes([0.1, 0.02, 0.2, 0.04])
-end_ax = plt.axes([0.4, 0.02, 0.2, 0.04])
+start_ax = plt.axes([0.075, 0.05, 0.2, 0.04])
+end_ax = plt.axes([0.35, 0.05, 0.2, 0.04])
+clear_ax = plt.axes([0.075, 0.01, 0.2, 0.03])
+show_locations_ax = plt.axes([0.35, 0.01, 0.2, 0.03])
 
 start_textbox = TextBox(start_ax, 'Start:')
 end_textbox = TextBox(end_ax, 'End:')
 
 
 bfs_button = Button(bfs_ax, 'Run BFS')
-bfs_button.on_clicked(run_bfs)
+bfs_button.on_clicked(run_bfs(graph))
 
 dfs_button = Button(dfs_ax, 'Run DFS')
-dfs_button.on_clicked(run_dfs) # 
+dfs_button.on_clicked(run_dfs(graph)) # 
 
 dijkstra_button = Button(dijkstra_ax, 'Run Dijkstras')
-dijkstra_button.on_clicked(run_dijkstra)
+dijkstra_button.on_clicked(run_dijkstra(graph))
 
-# Display the plot
-plt.title("Cal State Fullerton Campus Map with Nodes")
-plt.xlabel("Longitude")
-plt.ylabel("Latitude")
+clear_button = Button(clear_ax, 'Clear')
+clear_button.on_clicked(clear_textboxes)
+
+show_locations_button = Button(show_locations_ax, 'Location Names')
+show_locations_button.on_clicked(plot_location_names)
+
 plt.show()
 
-
-graph = create_graph(csuf_campus_map)
-add_locations(graph)
-
-path = dfs(graph, 'Student Recreation Center', 'Titan Gym')
+path = dijkstra(graph, 'College Park Building', 'Titan Gym')
 
 debug(path)
