@@ -1,5 +1,6 @@
 
 import matplotlib.pyplot as plt # For Visualizations
+from matplotlib.widgets import Button, TextBox
 import osmnx as ox # This gets the lat/long coordinates, and will plot the graph for CSUF
 import collections # defaultdict
 from collections import deque
@@ -100,20 +101,7 @@ csuf_locations = { # dictionary to hold the location names, and the coordinates 
     "State College Parking Structure":           (33.883469482027344, -117.88868179746281)
 }
 
-# Add locations as nodes to the graph
-for location, coords in csuf_locations.items():
-    csuf_campus_map.add_node(location, x = coords[1], y = coords[0], weight = 1)
-# I know for Dijkstra's Algo we need to set weights, but for now I have just set the weights to 1 for ALL nodes
 
-# Plot the updated graph to visualize it
-ox.plot_graph(csuf_campus_map, node_size=10, show=False, close=False)
-
-# Plot location nodes on top of the campus map
-for id, data in csuf_campus_map.nodes(data=True):
-    # Note: coordinates are accessed as (latitude, longitude)
-    # Nodes will be represented with red circles
-    if id in csuf_locations:
-        plt.plot(data['x'], data['y'], 'ro', markersize=5)  
 
 # Dijkstra's Algorithm
 def dijkstra(graph, start, end):
@@ -189,6 +177,66 @@ def dfs(graph, start, end, path=None):
     return None
 
 
+################## Code for Plot is below ####################
+
+
+def run_bfs(event):
+    start = start_textbox.text
+    end = end_textbox.text
+    path = bfs(graph, start, end)
+    debug(path)
+
+# Function to handle button click for DFS
+def run_dfs(event):
+    start = start_textbox.text
+    end = end_textbox.text
+    path = dfs(graph, start, end)
+    debug(path)
+
+# Function to handle button click for Dijkstra's
+def run_dijkstra(event):
+    start = start_textbox.text
+    end = end_textbox.text
+    path = dijkstra(graph, start, end)
+    debug(path)
+
+
+
+
+# Add locations as nodes to the graph
+for location, coords in csuf_locations.items():
+    csuf_campus_map.add_node(location, x = coords[1], y = coords[0], weight = 1)
+# I know for Dijkstra's Algo we need to set weights, but for now I have just set the weights to 1 for ALL nodes
+
+# Plot location nodes on top of the campus map
+for id, data in csuf_campus_map.nodes(data=True):
+    # Note: coordinates are accessed as (latitude, longitude)
+    # Nodes will be represented with red circles
+    if id in csuf_locations:
+        plt.plot(data['x'], data['y'], 'ro', markersize=5)  
+# Plot the updated graph to visualize it
+ox.plot_graph(csuf_campus_map, node_size=10, show=False, close=False)
+
+# Below are the dimensions for buttons for the each algo
+bfs_ax = plt.axes([0.1, 0.1, 0.1, 0.1])
+dfs_ax = plt.axes([0.3, 0.1, 0.1, 0.1])
+dijkstra_ax = plt.axes([0.5, 0.1, 0.1 , 0.1 ])
+# Create text input boxes for start and end points
+start_ax = plt.axes([0.1, 0.02, 0.2, 0.04])
+end_ax = plt.axes([0.4, 0.02, 0.2, 0.04])
+
+start_textbox = TextBox(start_ax, 'Start:')
+end_textbox = TextBox(end_ax, 'End:')
+
+
+bfs_button = Button(bfs_ax, 'Run BFS')
+bfs_button.on_clicked(run_bfs)
+
+dfs_button = Button(dfs_ax, 'Run DFS')
+dfs_button.on_clicked(run_dfs) # 
+
+dijkstra_button = Button(dijkstra_ax, 'Run Dijkstras')
+dijkstra_button.on_clicked(run_dijkstra)
 
 # Display the plot
 plt.title("Cal State Fullerton Campus Map with Nodes")
