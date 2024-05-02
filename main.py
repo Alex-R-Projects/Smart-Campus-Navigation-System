@@ -1,9 +1,10 @@
+import time
+import heapq
+from collections import deque, defaultdict
 
 import matplotlib.pyplot as plt # For Visualizations
 from matplotlib.widgets import Button, TextBox
 import osmnx as ox # This gets the lat/long coordinates, and will plot the graph for CSUF
-from collections import deque, defaultdict
-import heapq
 
 from pprint import pprint # debugging
 
@@ -177,9 +178,12 @@ def dfs(graph, start, end, path=None):
 
 
 ################## Code for Plot is below ####################
+def plot_exec_time(start_t, end_t):
+    plt.text(0.0, 0.01, f"Execution time: {end_t-start_t}", color='red', fontsize=12, transform=plt.gca().transAxes)
 
 def err_invalid():
     start_textbox.set_val("Invalid")
+    end_textbox.set_val("Invalid")
 
 def run_bfs(graph):
     def run(event):
@@ -190,8 +194,11 @@ def run_bfs(graph):
             err_invalid()
             return
 
+        s_t = time.perf_counter()
         path = bfs(graph, start, end)
+        e_t = time.perf_counter()
         plot_path(graph, path)
+        plot_exec_time(s_t, e_t)
         plt.show()
         debug(f"bfs from {start} to {end}: {path}")
     return run
@@ -206,8 +213,11 @@ def run_dfs(graph):
             err_invalid()
             return
         
+        s_t = time.perf_counter()
         path = dfs(graph, start, end)
+        e_t = time.perf_counter()
         plot_path(graph, path)
+        plot_exec_time(s_t, e_t)
         plt.show()
         debug(f"dfs from {start} to {end}: {path}")
     return run
@@ -222,8 +232,11 @@ def run_dijkstra(graph):
             err_invalid()
             return
 
+        s_t = time.perf_counter()
         path = dijkstra(graph, start, end)
+        e_t = time.perf_counter()
         plot_path(graph, path)
+        plot_exec_time(s_t, e_t)
         plt.show()
         debug(f"dijkstra from {start} to {end}: {path}")
     return run
