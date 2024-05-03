@@ -140,40 +140,41 @@ def dijkstra(graph, start, end):
 # Breadth-first search
 # Needs comments
 def bfs(graph, start, end):
-    queue = deque([[start]])
-    visited = set([start])
+    queue = [(0, start, [])]
+    visited = set()
 
     while queue:
-        path = queue.popleft()
-        node = path[-1]
-
-        if node == end:
-            return path
-
-        for adjacent, _ in graph[node]['adj'].items():
-            if adjacent not in visited:
-                visited.add(adjacent)
-                new_path = list(path)
-                new_path.append(adjacent)
-                queue.append(new_path)
+        (dist, node, path) = heapq.heappop(queue)
+        if node not in visited:
+            visited.add(node)
+            path = path + [node]
+            if node == end:
+                return path
+            for adjacent, weight in graph[node]['adj'].items():
+                if adjacent not in visited:
+                    heapq.heappush(queue, (dist + weight, adjacent, path))
 
     return None
 
 # Depth-first search
-# Needs comments
-def dfs(graph, start, end, path=None):
-    if path==None:
-        path = []
-    path.append(start)
+# This shit is broken
+def dfs(graph, start, end, visited=None, path=None):
+    if visited is None:
+        visited = set()
+    if path is None:
+        path = [start]
+
     if start == end:
         return path
-    if start not in graph:
-        return None
+
+    visited.add(start)
+
     for node in graph[start]['adj']:
-        if node not in path:
-            new_path = dfs(graph, node, end, path)
+        if node not in visited:
+            new_path = dfs(graph, node, end, visited, path + [node])
             if new_path:
                 return new_path
+
     return None
 
 
@@ -203,7 +204,7 @@ def run_bfs(graph):
         debug(f"bfs from {start} to {end}: {path}")
     return run
 
-# Function to handle button click for DFS
+# Function to handle button click for DFS 
 def run_dfs(graph):
     def run(event):
         start = start_textbox.text
@@ -280,6 +281,8 @@ def plot_path(graph, path):
     plt.plot(start_x, start_y, 'go', markersize=10)
     plt.plot(end_x, end_y, 'bo', markersize=10)
 
+    plt.annotate('Start', (start_x, start_y), textcoords="offset points", xytext=(-20,-20), ha='center', color='black', bbox=dict(boxstyle="round,pad=0.3", fc="white", lw=2))
+    plt.annotate('End', (end_x, end_y), textcoords="offset points", xytext=(-20,-20), ha='center', color='black', bbox=dict(boxstyle="round,pad=0.3", fc="white", lw=2))
 
 def plot_location_names(event):
     plt.figure()
