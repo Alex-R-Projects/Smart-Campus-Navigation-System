@@ -135,7 +135,7 @@ def dijkstra(graph, start, end):
                 heapq.heappush(queue, (distance, neighbor))
 
     # Return the shortest path from start to end
-    return paths[end]
+    return distances[end], paths[end]
 
 # Breadth-first search
 # Needs comments
@@ -149,7 +149,7 @@ def bfs(graph, start, end):
             visited.add(node)
             path = path + [node]
             if node == end:
-                return path
+                return dist, path
             for adjacent, weight in graph[node]['adj'].items():
                 if adjacent not in visited:
                     heapq.heappush(queue, (dist + weight, adjacent, path))
@@ -158,20 +158,20 @@ def bfs(graph, start, end):
 
 # Depth-first search
 # This shit is broken
-def dfs(graph, start, end, visited=None, path=None):
+def dfs(graph, start, end, visited=None, path=None, dist=0):
     if visited is None:
         visited = set()
     if path is None:
         path = [start]
 
     if start == end:
-        return path
+        return dist, path
 
     visited.add(start)
 
     for node in graph[start]['adj']:
         if node not in visited:
-            new_path = dfs(graph, node, end, visited, path + [node])
+            new_path = dfs(graph, node, end, visited, path + [node], dist + graph[start]['adj'][node])
             if new_path:
                 return new_path
 
@@ -180,13 +180,23 @@ def dfs(graph, start, end, visited=None, path=None):
 
 ################## Code for Plot is below ####################
 def plot_exec_time(start_t, end_t):
-    plt.text(0.0, 0.01, f"Execution time: {end_t-start_t}", color='red', fontsize=12, transform=plt.gca().transAxes)
+    et = plt.text(0.01, 0.01, f"Execution time: {end_t-start_t}", color='red', fontsize=12, transform=plt.gca().transAxes)
+    et.set_bbox(dict(facecolor='white', alpha=1, edgecolor='red'))
+
+def plot_dist(dist):
+    # in meters, source: google
+    avg_walking_speed = 1.42
+    walking_time_min = (dist / avg_walking_speed) / 60
+    dt = plt.text(0.01, 0.06, f"Distance: {dist:.2f} meters", color='red', fontsize=12, transform=plt.gca().transAxes)
+    dt.set_bbox(dict(facecolor='white', alpha=1, edgecolor='red'))
+    tt = plt.text(0.01, 0.11, f"Estimated Walking Time: {walking_time_min:.2f} minutes", color='red', fontsize=12, transform=plt.gca().transAxes)
+    tt.set_bbox(dict(facecolor='white', alpha=1, edgecolor='red'))
 
 def err_invalid():
     start_textbox.set_val("Invalid")
     end_textbox.set_val("Invalid")
 
-def run_bfs(graph):
+def run_algo(graph, algo):
     def run(event):
         start = start_textbox.text
         end = end_textbox.text
@@ -196,60 +206,18 @@ def run_bfs(graph):
             return
 
         s_t = time.perf_counter()
-        path = bfs(graph, start, end)
+        dist, path = algo(graph, start, end)
         e_t = time.perf_counter()
         plot_path(graph, path)
         plot_exec_time(s_t, e_t)
+        plot_dist(dist)
         plt.show()
-        debug(f"bfs from {start} to {end}: {path}")
-    return run
 
-# Function to handle button click for DFS 
-def run_dfs(graph):
-    def run(event):
-        start = start_textbox.text
-        end = end_textbox.text
-
-        if start not in graph or end not in graph:
-            err_invalid()
-            return
-        
-        s_t = time.perf_counter()
-        path = dfs(graph, start, end)
-        e_t = time.perf_counter()
-        plot_path(graph, path)
-        plot_exec_time(s_t, e_t)
-        plt.show()
-        debug(f"dfs from {start} to {end}: {path}")
-    return run
-
-# Function to handle button click for Dijkstra's
-def run_dijkstra(graph):
-    def run(event):
-        start = start_textbox.text
-        end = end_textbox.text
-
-        if start not in graph or end not in graph:
-            err_invalid()
-            return
-
-        s_t = time.perf_counter()
-        path = dijkstra(graph, start, end)
-        e_t = time.perf_counter()
-        plot_path(graph, path)
-        plot_exec_time(s_t, e_t)
-        plt.show()
-        debug(f"dijkstra from {start} to {end}: {path}")
     return run
 
 def clear_textboxes(event):
     start_textbox.set_val('')
     end_textbox.set_val('')
-
-# Add locations as nodes to the graph
-for location, coords in csuf_locations.items():
-    csuf_campus_map.add_node(location, x = coords[1], y = coords[0], weight = 1)
-# I know for Dijkstra's Algo we need to set weights, but for now I have just set the weights to 1 for ALL nodes
 
 def plot_map():
     # Plot the updated graph to visualize it
@@ -296,6 +264,14 @@ def plot_location_names(event):
     plt.axis('off')
     plt.show()
 
+def add_csuf_locations():
+    # Add locations as nodes to the graph
+    for location, coords in csuf_locations.items():
+        csuf_campus_map.add_node(location, x = coords[1], y = coords[0], weight = 1)
+    # I know for Dijkstra's Algo we need to set weights, but for now I have just set the weights to 1 for ALL nodes
+
+
+add_csuf_locations()
 plot_map()
 
 graph = create_graph(csuf_campus_map)
@@ -316,13 +292,13 @@ end_textbox = TextBox(end_ax, 'End:')
 
 
 bfs_button = Button(bfs_ax, 'Run BFS')
-bfs_button.on_clicked(run_bfs(graph))
+bfs_button.on_clicked(run_algo(graph, bfs))
 
 dfs_button = Button(dfs_ax, 'Run DFS')
-dfs_button.on_clicked(run_dfs(graph)) # 
+dfs_button.on_clicked(run_algo(graph, dfs)) # 
 
 dijkstra_button = Button(dijkstra_ax, 'Run Dijkstras')
-dijkstra_button.on_clicked(run_dijkstra(graph))
+dijkstra_button.on_clicked(run_algo(graph, dijkstra))
 
 clear_button = Button(clear_ax, 'Clear')
 clear_button.on_clicked(clear_textboxes)
@@ -331,7 +307,3 @@ show_locations_button = Button(show_locations_ax, 'Location Names')
 show_locations_button.on_clicked(plot_location_names)
 
 plt.show()
-
-path = dijkstra(graph, 'College Park Building', 'Titan Gym')
-
-debug(path)
